@@ -60,13 +60,13 @@
 (defn- known? [val]
   (not (identical? val DontKnow)))
 
-;; This function assumes that *this-world* is not bound to nil
-;; (i.e. not the top-level world)
-;; This is currently guaranteed as it is only invoked from world-lookup,
-;; which is only called when *this-world* is not nil
 ;; This function ensures the "no surprises" property
-;; i.e. a ref does not appear to change spontaneously in
-;; *this-world* when it is updated in one of its parents
+;; i.e. a ref does not appear to change spontaneously in *this-world* when
+;; it is updated in one of its parents.
+;; This function assumes that *this-world* is not bound to nil (i.e. it should
+;; not be called in the top-level world).
+;; This is currently guaranteed as it is only invoked from lookup-in-parent-world,
+;; which is itself only called when *this-world* is not nil (see w-deref)
 (defn- mark-as-read [ref val]
   ;; if ref's :reads value does not exist or is bound to DontKnow
   ;; in this world, mark it as read before returning it
