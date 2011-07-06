@@ -43,5 +43,7 @@ Next Steps
   2. Experiment with stronger consistency checks.
      Using the default semantics of worlds, worlds can see
      inconsistent world-lines when other worlds commit to their parent.
-     This is similar to the problem of _write skew_ in
-     [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control).
+     A possible fix is to introduce _snapshot isolation_, as for example
+     employed by 
+     [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control)
+     (which also happens to lie at the basis of Clojure's STM).
