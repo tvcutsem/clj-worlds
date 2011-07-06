@@ -32,7 +32,7 @@ What is the difference with Clojure's refs and STM, you ask?
 Like transactions, worlds isolate and group side-effects.
 Unlike transactions:
 
-  * Worlds are first-class entities: worlds can be created, passed around, and "opened" and "closed" at will. Committing a world is an explicit operation and is not tied to the control flow of a block.
+  * Worlds are first-class entities: worlds can be created, passed around, and "opened" and "closed" at will. Committing a world's changes is an explicit operation and is not tied to the control flow of a block.
 
   * Worlds are not a concurrency control mechanism. World commits are not atomic, and while individual world operations are thread-safe, worlds do not support multiple atomic updates and thread isolation.
   
