@@ -49,9 +49,6 @@
 
 (def *this-world* nil)
 
-(defmacro in-world [world-expr & body]
-  `(in-world-do ~world-expr (fn [] ~@body)))
-
 (defn in-world-do [world fn]
   (binding [*this-world* world] (fn)))
 
@@ -168,6 +165,9 @@
   (w-ref-set ref (apply fn (w-deref ref) args)))
 
 (defn this-world [] *this-world*)
+
+(defmacro in-world [world-expr & body]
+  `(in-world-do ~world-expr (fn [] ~@body)))
 
 (defn sprout [parent-world]
     ;; maps ref to its "old" value when it was first read in this world,
