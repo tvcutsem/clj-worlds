@@ -66,6 +66,25 @@
     (in-world child
       (is (= 1 (w-deref r))))))
       
+(deftest test-commit-read-only
+  (let [parent (sprout (this-world))
+        child (sprout parent)
+        r (w-ref 0)]
+    (is (= parent (:parent child)))
+    (in-world child
+      (is (= 0 (w-deref r))))
+    (in-world parent
+      (is (= 0 (w-deref r))))
+    (in-world (this-world)
+      (is (= 0 (w-deref r))))
+    (commit child)
+    (in-world parent
+      (is (= 0 (w-deref r))))
+    (in-world (this-world)
+      (is (= 0 (w-deref r))))
+    (in-world child
+      (is (= 0 (w-deref r))))))
+      
 (deftest test-top-level-rw
   (let [r (w-ref 0)]
     (is (= 0 (w-deref r)))

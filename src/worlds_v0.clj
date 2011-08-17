@@ -57,32 +57,18 @@
 (defn- known? [val]
   (not (identical? val DontKnow)))
 
-;; This function ensures the "no surprises" property
-;; i.e. a ref does not appear to change spontaneously in *this-world* when
-;; it is updated in one of its parents.
-;; This function assumes that *this-world* is not bound to nil (i.e. it should
-;; not be called in the top-level world).
-;; This is currently guaranteed as it is only invoked from lookup-in-parent-world,
-;; which is itself only called when *this-world* is not nil (see w-deref)
-(defn- mark-as-read [ref val]
-  ;; if ref's :reads value does not exist or is bound to DontKnow
-  ;; in this world, mark it as read before returning it
-  (if (identical? (get @(:reads *this-world*) ref DontKnow) DontKnow)
-    (swap! (:reads *this-world*) assoc ref val))
-  val)
-    
 ;; NOTE: this function assumes that current-world is never *this-world*.
-;; Always call (deref ref) instead of (world-lookup *this-world* ref)
+;; Always call (deref ref) instead of (lookup-in-parent-world *this-world* ref)
 (defn- lookup-in-parent-world [current-world ref]
   (if (nil? current-world)
     ;; in top-level world, latest value is stored in ref itself
-    (mark-as-read ref @ref)
+    @ref
     (let [val (get @(:writes current-world) ref DontKnow)]
       (if (known? val)
-          (mark-as-read ref val)
+          val
           (let [val (get @(:reads current-world) ref DontKnow)]
             (if (known? val)
-              (mark-as-read ref val)
+              val
               (recur (:parent current-world) ref)))))))
 
 ;; Note: this function requires that parent-world is non-nil
@@ -105,7 +91,7 @@
       (fn [reads]
         (if (contains? reads ref)
           (assoc reads ref val)
-          reads)) ref val))
+          reads))))
   ;; clear child-world's :reads and :writes
   (reset! (:reads child-world) {})
   (reset! (:writes child-world) {}))
@@ -126,8 +112,7 @@
     (reset! ref val))
   ;; propagate all of child-world's :reads to parent-world's :reads,
   ;; except for refs that have already been read from in parent-world
-  
-  ;; SKIP when committing to top-level?
+  ;; Not necessary when committing to top-level, which has no :reads
   
   ;; clear child-world's :reads and :writes
   (reset! (:reads child-world) {})
@@ -150,7 +135,14 @@
           (let [val (get @(:reads *this-world*) ref DontKnow)]
             (if (known? val)
                 val
-                (lookup-in-parent-world (:parent *this-world*) ref)))))))
+                (let [val (lookup-in-parent-world (:parent *this-world*) ref)]
+                  ;; if ref's :reads value does not exist or is bound to DontKnow
+                  ;; in this world, mark it as read before returning it.
+                  ;; This ensures the "no surprises" property,
+                  ;; i.e. a ref does not appear to change spontaneously in
+                  ;; *this-world* when it is updated in one of its parents.
+                  (swap! (:reads *this-world*) assoc ref val)
+                  val)))))))
 
 (defn w-ref-set
   [ref val]
