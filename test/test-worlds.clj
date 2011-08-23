@@ -26,7 +26,8 @@
 (ns test.worlds
   (:use clojure.test))
   
-(use 'worlds-v0)
+;(use 'worlds-v0)
+(use 'worlds-v1)
 
 (deftest test-scoped-side-effects
   (let [w (sprout (this-world))
