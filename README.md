@@ -39,7 +39,7 @@ Unlike transactions:
 Next Steps
 ==========
 
-  1. Integrate w-refs with regular refs. Make `commit` atomic.
+  1. <strike>Integrate w-refs with regular refs. Make `commit` atomic.</strike>: see [worlds_v1.clj](https://github.com/tvcutsem/clj-worlds/blob/master/src/worlds_v1.clj).
   2. Experiment with stronger consistency checks.
      Using the default semantics of worlds, worlds can see
      inconsistent world-lines when other worlds commit to their parent.
