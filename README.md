@@ -1,12 +1,9 @@
 `clj-worlds` is an implementation of Alex Warth's "worlds" in Clojure.
 The idea is explained nicely in this [paper](http://www.vpri.org/pdf/tr2011001_final_worlds.pdf).
 
-Worlds support scoped side-effects.
-In Clojure, they can be conveniently modelled as a special kind of [ref](http://clojure.org/refs), called a "world-ref" or w-ref for short.
+Worlds support scoped side-effects, enabling speculative computations (e.g. "try solution A. If it fails, forget about all side-effects performed while trying A and try solution B").
 
-A w-ref always has a value that is relative to the current world.
-Worlds form a single-rooted hierarchy, and a world can "commit"
-all of its changes to its parent world.
+In Clojure, world-sensitive state can be conveniently modelled as a special kind of [ref](http://clojure.org/refs), called a "world-ref" or w-ref for short. A w-ref always has a value that is relative to the current world. Worlds form a single-rooted hierarchy, and a world can "commit" all of its changes to its parent world.
 
 The API of clj-worlds is heavily inspired by Clojure's own `ref` API.
 Like refs, w-refs can be created (`w-ref`), dereferenced (`w-deref`),
@@ -32,18 +29,18 @@ What is the difference with Clojure's refs and STM, you ask?
 Like transactions, worlds isolate and group side-effects.
 Unlike transactions:
 
-  * Worlds are first-class entities: worlds can be created, passed around, and "opened" and "closed" at will. Committing a world's changes is an explicit operation and is not tied to the control flow of a block.
+  * Worlds are first-class entities: worlds can be created, passed around, and "opened" and "closed" at will. Committing a world's changes is an explicit operation and is not tied to the control flow of a block (in contrast to STM, which operates on `dosync` blocks).
 
-  * Worlds are not a concurrency control mechanism. World commits are not atomic, and while individual world operations are thread-safe, worlds do not support multiple atomic updates and thread isolation.
+  * Worlds are not a concurrency control mechanism. While individual world operations are thread-safe, and world commits can be made atomic, worlds can see inconsistent world-lines when sibling worlds commit to their parent. There is no notion of conflict or rollback. Worlds are meant to express multiple speculative computations within a _single_ thread of control.
   
 Next Steps
 ==========
 
-  1. <strike>Integrate w-refs with regular refs. Make `commit` atomic.</strike>: see [worlds_v1.clj](https://github.com/tvcutsem/clj-worlds/blob/master/src/worlds_v1.clj).
+  1. Integrate w-refs with regular refs. Make `commit` atomic. Done: see [worlds_v1.clj](https://github.com/tvcutsem/clj-worlds/blob/master/src/worlds_v1.clj).
   2. Experiment with stronger consistency checks.
      Using the default semantics of worlds, worlds can see
      inconsistent world-lines when other worlds commit to their parent.
      A possible fix is to introduce _snapshot isolation_, as for example
      employed by 
      [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control)
-     (which also happens to lie at the basis of Clojure's STM).
+     (which also happens to lie at the basis of Clojure's STM) or to build upon [concurrent revisions](http://research.microsoft.com/en-us/projects/revisions/).
